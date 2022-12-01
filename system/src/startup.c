@@ -4,9 +4,10 @@
  *  Author: Magdy Adel
  */
 
-#include "STD_TYPES.h"
+#include "../../ARM_COTS/LIB/STD_TYPES.h"
+#include "../../ARM_COTS/LIB/BIT_MATH.h"
 //#include "../../COTS_ARM/LIB/STD_TYPES.h"
-//#include "../../COTS_ARM/MCAL-ARM/RCC/RCC_int.h"
+#include "../../ARM_COTS/MCAL-ARM/RCC/RCC_int.h"
 #include "../inc/startup.h"
 
 
@@ -104,9 +105,9 @@ void Reset_Handler(void)
 	
 	/************ Setup the microcontroller system *****/
 	//Enable HSI Clock
-	//MCAL_RCC_vInit();
+	RCC_vInit();
 	/* Disable all interrupts and clear pending bits  */
-	//MCAL_RCC_vDisableAllInterrupt();
+	RCC_vDisableAllInterrupt();
 	// SCB->VTOR = FLASH_BASE | VECT_TAB_OFFSET; /* Vector Table Relocation in Internal FLASH. */
 	/***************************************************/
 
@@ -134,7 +135,7 @@ void Reset_Handler(void)
 	
 	
 	/*********** Enable HSI Interrupt ******************/
-	//MCAL_RCC_vEnHSIInterrupt();
+	RCC_vEnableAllInterrupt();
 	/***************************************************/
 	
 	
