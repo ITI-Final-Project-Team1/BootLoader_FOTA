@@ -41,7 +41,7 @@ void (*GP_STK_Callback)(void) = NULL;
  *=======================================================================
  *
 */
-void MCAL_STK_voidInit (CLKSOURCE_t clkSrc)
+void MCAL_STK_vInit (CLKSOURCE_t clkSrc)
 {
 	/*Apply clock choice from config file*/
 	STK->CTRL = (clkSrc << CTRL_CLKSOURCE);
@@ -51,7 +51,7 @@ void MCAL_STK_voidInit (CLKSOURCE_t clkSrc)
 	CLR_BIT(STK->CTRL, CTRL_ENABLE);
 
 }
-void MCAL_STK_voidSetBusyWait(u32 A_u32Ticks)
+void MCAL_STK_vSetBusyWait(u32 A_u32Ticks)
 {
 	/* CLEAR Timer VAL register */
 	STK->VAL = 0;
@@ -71,7 +71,7 @@ void MCAL_STK_voidSetBusyWait(u32 A_u32Ticks)
 
 
 }
-void MCAL_STK_voidSetIntervalSingle(u32 A_u32Ticks, void (*fptr) (void))
+void MCAL_STK_vSetIntervalSingle(u32 A_u32Ticks, void (*fptr) (void))
 {
 	/* Set single flag */
 	singleFlag = 1;
@@ -93,7 +93,7 @@ void MCAL_STK_voidSetIntervalSingle(u32 A_u32Ticks, void (*fptr) (void))
 
 }
 
-void MCAL_STK_voidSetIntervalPeriodic(u32 A_u32Ticks, void (*fptr) (void))
+void MCAL_STK_vSetIntervalPeriodic(u32 A_u32Ticks, void (*fptr) (void))
 {
 	/* Clear single flag */
 	singleFlag = 0;
@@ -115,7 +115,7 @@ void MCAL_STK_voidSetIntervalPeriodic(u32 A_u32Ticks, void (*fptr) (void))
 
 
 }
-void MCAL_STK_voidStopInterval(void)
+void MCAL_STK_vStopInterval(void)
 {
 	/* Stop timer  */
 	CLR_BIT(STK->CTRL, CTRL_ENABLE);
