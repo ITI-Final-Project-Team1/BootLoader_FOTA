@@ -28,9 +28,9 @@ void BTL_vStart(void);
 void BTL_vSetup(void);
 
 
-// enuBTL_State BTL_enuWaitingState(void);
-// enuBTL_State BTL_enuBurningState(void);
-// enuBTL_State BTL_enuFinishedState(void);
+enuBTL_State BTL_enuWaitingState(void);
+enuBTL_State BTL_enuBurningState(void);
+void BTL_enuFinishedState(void);
 //=======================================================================
 
 
