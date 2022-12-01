@@ -24,12 +24,16 @@ typedef double			   f64;
 #define NULL	((void*)0)
 #endif
 
-#ifndef bool
-	typedef{
-		false =0,
-		true
-	}enuBOOL;
-#endif
+typedef enum {
+	false =0,
+	true
+}enuBOOL;
+
+typedef enum
+{
+	NO_ERR = 0,
+	ERR = 1,
+}Err_t;
 
 
 
