@@ -119,7 +119,7 @@ void RCC_vSetSysClock(System_Clock_t Copy_systemClock);
 void RCC_vRESET(Prepherial_EN_t Copy_prepherial , Bus_ID_t Copy_busId );
 
 void RCC_vDisableAllInterrupt(void);
-void RCC_vEnHSIInterrupt(void);
+void RCC_vEnableAllInterrupt(void);
 
 //===================================================================================
 

@@ -19,7 +19,7 @@
  * - RCC_PLL
  */
 
-#define RCC_CLOCK_TYPE				RCC_HSE
+#define RCC_CLOCK_TYPE				RCC_HSI
 
 #if RCC_CLOCK_TYPE == RCC_HSI
 	/*
@@ -27,7 +27,7 @@
 	 * ENABLED
 	 * DISABLED
 	 */
-	#define RCC_HSI_TRIM_ENABLE		ENABLED
+	#define RCC_HSI_TRIM_ENABLE		DISABLED
 
     #if RCC_HSI_TRIM_ENABLE	== DISABLED
 	/*

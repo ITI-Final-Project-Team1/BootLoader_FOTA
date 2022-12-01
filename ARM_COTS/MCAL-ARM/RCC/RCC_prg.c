@@ -198,7 +198,7 @@ void RCC_vDisableAllInterrupt(void)
 	/* Disable all interrupts and clear pending bits  */
 	RCC->CIR = 0x009F0000;
 }
-void RCC_vEnHSIInterrupt(void)
+void RCC_vEnableAllInterrupt(void)
 {
 	/* Enable HSI interrupts and clear pending bits  */
 	RCC->CIR = 0x009F1F00;
