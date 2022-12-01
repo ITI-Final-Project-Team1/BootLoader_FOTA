@@ -177,17 +177,16 @@ void RCC_vSetSysClock(System_Clock_t Copy_systemClock)
 
 
 
-
 void RCC_vRESET(Prepherial_EN_t Copy_prepherial , Bus_ID_t Copy_busId )
 {
-	if(A_u16PeripheralID <= 31)
+	if(Copy_prepherial)
 		{
-			switch (A_u8BusID)
+			switch (Copy_busId)
 			{
-				case RCC_AHB  : break;
-				case RCC_APB1 : SET_BIT(RCC->APB1RSTR,A_u16PeripheralID);
+				case AHB  : break;
+				case APB1 : SET_BIT(RCC->APB1RSTR,Copy_prepherial);
 					break;
-				case RCC_APB2 : SET_BIT(RCC->APB2RSTR,A_u16PeripheralID);
+				case APB2 : SET_BIT(RCC->APB2RSTR,Copy_prepherial);
 					break;
 				//default       : /* return Error ; */ break;
 			}
