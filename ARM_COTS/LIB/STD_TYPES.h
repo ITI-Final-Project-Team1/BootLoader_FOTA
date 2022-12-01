@@ -24,4 +24,13 @@ typedef double			   f64;
 #define NULL	((void*)0)
 #endif
 
+#ifndef bool
+	typedef{
+		false =0,
+		true
+	}enuBOOL;
+#endif
+
+
+
 #endif /* STD_TYPES_H_ */
