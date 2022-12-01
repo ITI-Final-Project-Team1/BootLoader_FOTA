@@ -6,19 +6,22 @@ show:
 	echo $(OBJ)
 
 
-all:$(P_BIN_DIR)/$(Project_name).bin $(P_BIN_DIR)/$(Project_name).hex
+all: Create  $(P_BIN_DIR)/$(Project_name).bin $(P_BIN_DIR)/$(Project_name).hex 
 	@echo "==============Bild is Done=============="
+
+Create:
+	@[ -d $(BINDIR) ] || mkdir -p $(BINDIR)
+	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
 
 %.o: %.s
 	$(CC)as.exe $(CFLAGS) $< -o $@
 
-$(OBJDIR)/%.o: %.c
+$(OBJDIR)/%.o: %.c 
 	$(CC)gcc.exe $(INCS) $(CFLAGS) -c $< -o $(OBJDIR)/$(@F)
 
 $(P_BIN_DIR)/$(Project_name).elf: $(OBJECTS) 
 	$(CC)ld.exe -T $(LDSCRIPT)/linkerscript.ld $(LIBS) $(OBJ) -o $@ -Map=$(BINDIR)/map_file.map
 	cp $(P_BIN_DIR)/$(Project_name).elf $(P_BIN_DIR)/$(Project_name).axf
-	@echo "========= Binary Out Done ========="
 
 $(P_BIN_DIR)/$(Project_name).bin: $(P_BIN_DIR)/$(Project_name).elf
 	@$(CC)objcopy.exe -O binary $< $@
