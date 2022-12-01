@@ -37,4 +37,7 @@ u8 USART_vReceiveString_Async(void);
 
 void USART_vSetCallBack(void (* Pf_vUSART_CallBack)(void));
 
+void USART_vClearFlags( void );
+u8 MUSART1_u8ReadDataRegister ( void );
+
 #endif /* MCAL_USART_USART_INTERFACE_H_ */

@@ -4,7 +4,7 @@ Eng.Magdy Adel
 
 MEMORY
 {
-FLASH (rx) : ORIGIN = 0x08000000, LENGTH = 4k
+FLASH (rx) : ORIGIN = 0x08000000, LENGTH = 8k
 SRAM (rwx) : ORIGIN = 0x20000000, LENGTH = 20k
 }
 

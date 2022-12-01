@@ -47,7 +47,7 @@ typedef struct
 
 void HEXP_Get_Data(u8* Copy_u8HexRecord/*takes one hex record*/, u16* Copy_u16Data/*return Data*/);
 
-void HEXP_Get_RecordData(u8* Copy_u8HexRecord/*takes one hex record*/, hexRecord_t* Copy_u16RecordData/*return Data*/);
+void HEXP_Get_RecordData(u8 volatile Copy_u8HexRecord[]/*takes one hex record*/, hexRecord_t* Copy_u16RecordData/*return Data*/);
 
 
 #endif /* SERVICES_HEX_PARSER_HEX_PARSER_H_ */

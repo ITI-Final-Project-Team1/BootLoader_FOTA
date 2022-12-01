@@ -10,6 +10,20 @@ static void (* GS_vUSART_CallBack)(void);
 
 u32 G_USART_Data[100] = {0};
 
+
+void USART_vClearFlags( void ){
+
+	/* Clear all flags */
+	USART1->USART_SR = 0;
+
+}
+
+u8 MUSART1_u8ReadDataRegister ( void ){
+
+	return ( USART1->USART_DR );
+
+}
+
 static u32 USART_pow(u32 Copy_32Base, u32 Copy_32Exponent)
 {
 	u32 Local_u8returnVal = 1, Local_u8index = 0;

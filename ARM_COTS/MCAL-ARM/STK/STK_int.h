@@ -40,7 +40,7 @@ typedef enum{
 */
 void MCAL_STK_vInit				  (CLKSOURCE_t clkSrc);
 void MCAL_STK_vSetBusyWait		  (u32 A_u32Ticks);
-void MCAL_STK_vSetIntervalSingle(u32 A_u32Ticks, void (*fptr) (void));
+void MCAL_STK_vSetIntervalSingle		(u32 A_u32Ticks, void (*fptr) (void));
 void MCAL_STK_vSetIntervalPeriodic (u32 A_u32Ticks, void (*fptr) (void));
 void MCAL_STK_vStopInterval		  (void);
 u32  MCAL_STK_u32GetElapsedTime		  (void);

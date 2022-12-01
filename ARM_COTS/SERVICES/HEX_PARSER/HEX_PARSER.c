@@ -83,7 +83,7 @@ void HEXP_Get_Data(u8* Copy_u8HexRecord/*takes one hex record*/, u16* Copy_u16Da
 	}
 }
 
-void HEXP_Get_RecordData(u8* Copy_u8HexRecord/*takes one hex record*/, hexRecord_t* Copy_xRecordData/*return Data*/)
+void HEXP_Get_RecordData(u8 volatile Copy_u8HexRecord[]/*takes one hex record*/, hexRecord_t* Copy_xRecordData/*return Data*/)
 {
 
 	u8 Local_u8DigitLow, Local_u8DigitHigh, Local_u8Index, Local_u8Digit0, Local_u8Digit1, Local_u8Digit2, Local_u8Digit3, Local_u8DataCounter = 0;

@@ -14,6 +14,7 @@
 #include "../../ARM_COTS/MCAL-ARM/FPEC/FPEC_interface.h"
 #include "../../ARM_COTS/MCAL-ARM/USART/USART_interface.h"
 #include "../../ARM_COTS/SERVICES/HEX_PARSER/HEX_PARSER.h"
+#include "../../ARM_COTS/HAL/ESP8266/ESP8266_INTERFACE.h"
 
 #include "BOOTLOADER.h"
 //=======================================================================
@@ -21,8 +22,8 @@
 
 
 //to be replased in ESP8266_PRIVATE.h
-#define WifiName_SSID 	"AbdallahSSID"
-#define WifiPassword	"AbdallahWifiPassword"
+#define WifiName_SSID 	"kamal"
+#define WifiPassword	"0123456789@@_\"AKA\"_@@0123456789"
 #define DomainURL		"http://fota-bootloader.freevar.com/"
 #define UrlGetLINE		"http://fota-bootloader.freevar.com/start_flash.php?config=ok"
 
@@ -44,7 +45,7 @@ Function_t CallApp = 0;
 
 enuBOOL needToWrite = false;
 enuBOOL appReady = false;
-u8 hexRecord[50]; //for hexFile.string
+extern volatile u8 DataCome[200]; //for hexFile.string
 hexRecord_t hexDecoded;
 //=======================================================================
 
@@ -61,9 +62,9 @@ static void _BTL_vJumpToApp(void)
 {
 	#define SCB_VTOR   *((volatile u32*)0xE000ED08)
 
-	SCB_VTOR = 0x08001000;//point to App SP ---firt address of flash in app --- first vector table
+	SCB_VTOR = 0x08002000;//point to App SP ---firt address of flash in app --- first vector table
 	
-	CallApp = * (Function_t*)(0x08001004);//APP startup code
+	CallApp = * (Function_t*)(0x08002004);//APP startup code
 	CallApp();
 }
 
@@ -84,7 +85,7 @@ static void _BTL_voidEraseAppArea(void)
 {
 	u8 i;
 	
-	for (i=4;i<64;i++)
+	for (i=8;i<64;i++)
 	{
 		FPEC_xErasePage_ByPN(i);
 	}
@@ -99,10 +100,12 @@ enuBTL_State BTL_enuWaitingState(void)
 	//set time out for booting
 	MCAL_STK_vSetIntervalSingle((u32 )BTL_TimeOut_us, BTL_enuFinishedState);
 	
-	//isReceived = USART_vReceiveString_Async( hexRecord );
+	//ASK for record
+	isReceived = ESP8266_u8ReceiveHttpReq((u8 *)UrlGetLINE,(u8 *)"53");
 	/* if received correctly */ 
-	if (isReceived)
+	if (isReceived==1)
 	{
+		MCAL_GPIO_vWritePin(GPIOA , GPIO_PIN_3, GPIO_PIN_HIGH);
 		//STOP time out for booting
 		MCAL_STK_vStopInterval();
 		
@@ -114,14 +117,16 @@ enuBTL_State BTL_enuWaitingState(void)
 			needToWrite = 0;		
 		}
 		appReady = 0;	/*Signal that the application isn't ready*/
-
+		isReceived =0;
 		/* application region erased successfully */
 		currentState = Burning ; /* move to writing state */
 
 	}
 	else /* anything else stay in waiting state */
+	{
 		currentState = Waiting; 
-	
+		MCAL_GPIO_vWritePin(GPIOA , GPIO_PIN_3, GPIO_PIN_LOW);
+	}
 	return currentState;
 }
 
@@ -131,8 +136,8 @@ enuBTL_State BTL_enuBurningState(void)
 {
 	enuBTL_State currentState;
 	/* Parse received hex line into record */
-	HEXP_Get_RecordData(hexRecord/*	takes one hex record*/, &hexDecoded/*return Data*/);
-
+	HEXP_Get_RecordData(DataCome/*	takes one hex record*/, &hexDecoded/*return Data*/);
+	MCAL_GPIO_vWritePin(GPIOA , GPIO_PIN_3, GPIO_PIN_HIGH);
 	if(hexDecoded.record_type == HEXP_EOF ){
 		/* if finished writing hex file	signal that the application is ready */
 		appReady = 1;
@@ -146,6 +151,8 @@ enuBTL_State BTL_enuBurningState(void)
 		//TO DO
 		// OK And send another Record
 //		MUSART1_voidTransmit("ok");//ACK +IPD
+		//ASK to read first rec
+		//ESP8266_u8ReceiveHttpReq((u8 *)UrlGetLINE,(u8 *)"53");
 		//ESP8266_voidSendData(IPserver,"63","fota-bootloader.freevar.com/start_flash.php?config=ok",data);
 		
 		/* if not finished writing hex file	signal that the application is not ready */
@@ -161,6 +168,7 @@ void BTL_enuFinishedState(void)
 {
 	//lock flash
 	FPEC_xLock();
+	MCAL_GPIO_vWritePin(GPIOA , GPIO_PIN_3, GPIO_PIN_LOW);
 	
 	/***** Reset & disable peripheral ***/
 	RCC_vDisableClock( USART1_APB2 , APB2 );	/* Disable USART 1 */
@@ -206,8 +214,10 @@ void BTL_vSetup(void)
 	};
 	MCAL_GPIO_vInit(GPIOA,&USART1_PINs[1]);
 	MCAL_GPIO_vInit(GPIOA,&USART1_PINs[1]);
-		
-
+	GPIO_PinConfig_t led = {GPIO_PIN_3, GPIO_Mode_OUT_PushPull , GPIO_Speed_2M };	
+	MCAL_GPIO_vInit(GPIOA,&led);
+	
+	MCAL_GPIO_vWritePin(GPIOA , GPIO_PIN_3, GPIO_PIN_HIGH);
 
 	/* Set USART1 Higer Priority Enable NVIC For USART1 */
 	MCAL_NVIC_vSetPriority ( NVIC_USART1_IRQ , 1 , NVIC_GROUP4_SUB0 ) ;
@@ -218,16 +228,19 @@ void BTL_vSetup(void)
 	USART_vInit();
 
 	/* Setting ESP8266 Mode */
-	//ESP8266_VidInit();
+	ESP8266_VidInit();
 
 	/* Connecting To WIFI Network */
-	//ESP8266_VidConnectToWiFi( (u8 *)WifiName_SSID , (u8 *)WifiPassword );
+	ESP8266_VidConnectToWiFi( (u8 *)WifiName_SSID , (u8 *)WifiPassword );
 	/* Connecting To subDOMAIN.freevar.com */
-	//ESP8266_VidConnectToSrvTcp( (u8 *)DomainURL , (u8 *)"80" );
-	//ASK to read first rec
+	ESP8266_VidConnectToSrvTcp( (u8 *)DomainURL , (u8 *)"80" );
 	
+	//ASK to read first rec
+	//ESP8266_u8ReceiveHttpReq((u8 *)UrlGetLINE,(u8 *)"53");
+			
 	//set need to write flag to erase App section in flash//Write requist
 	needToWrite = true;
+	currentBTLState = Waiting;
 }
 
 
@@ -247,6 +260,7 @@ void BTL_vStart(void)
 			case Finished: break;
 		}
 	}
+
 	state(Finished); 
 }
 
