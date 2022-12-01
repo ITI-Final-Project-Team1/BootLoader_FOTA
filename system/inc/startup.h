@@ -14,7 +14,7 @@
  *=======================================================================
  *
 */
-extern int main(void);
+extern int mainBTL(void);
 /***Symbols  from LinkerScript . ***/ 
 extern u32 _E_stack;
 //Symbols for copying data from flash to sram

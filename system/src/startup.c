@@ -114,8 +114,8 @@ void Reset_Handler(void)
 	/************ Copy Data from FLASH to SRAM ********/
 	u32 DATA_SIZE = (u8*)&_E_DATA - (u8*)&_S_DATA;
 	u32 i=0,j=0;
-	u8* P_src = (u8*)&_E_text;
-	u8* P_dis = (u8*)&_S_DATA;
+	u8* P_src = (u8*)&_E_text;//in flash >FLASH
+	u8* P_dis = (u8*)&_S_DATA;// in RAM
 	for( i=0 ; i<DATA_SIZE ; i++)
 	{
 		*((u8*)P_dis++) = *((u8*)P_src++);
@@ -139,7 +139,7 @@ void Reset_Handler(void)
 	
 	
 	/**************** Call main ************************/
-	main();
+	mainBTL();
 	/***************************************************/
 }
 /* ================================================================================== */

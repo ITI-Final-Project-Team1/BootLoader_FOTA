@@ -24,10 +24,10 @@ ENTRY(_start)
 SECTIONS
 {
 	.text :
-	{
+	{	
 		*(.vectors*)
 		*(.text*) /* all remaining code */
-		*(.rodata) 		/* read-only data (constants) */
+		*(.rodata*) 		/* read-only data (constants) */
 		
 		_E_text = . ; 		/* End of .text section */
 	}> FLASH
@@ -38,7 +38,7 @@ SECTIONS
 		*(.data*)
 		. = ALIGN(4) ;		/* to make word aligned after data section */   
 		_E_DATA = . ;		/* End of .data section */
-	}>SRAM AT> FLASH 			/* virtual addresses exists in RAM but at loading time burn in FLASH */ 
+	}>SRAM AT> FLASH 		/* virtual addresses exists in RAM but at loading time burn in FLASH */ 
 	
 	.bss :
 	{
