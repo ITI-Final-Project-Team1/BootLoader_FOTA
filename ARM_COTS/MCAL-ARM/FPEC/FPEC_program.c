@@ -70,7 +70,7 @@ Err_t FPEC_xEraseMass(void)
 	while(GET_BIT(FPEC->FPEC_SR, SR_BSY));
 
 	// Reset the MER bit
-	CLEAR_BIT(FPEC->FPEC_CR, CR_MER);
+	CLR_BIT(FPEC->FPEC_CR, CR_MER);
 
 	return Local_returnVal;
 }
@@ -102,7 +102,7 @@ Err_t FPEC_xErasePage_ByPN(u8 Copy_u8PageNumber)
 			Local_returnVal = ERR;
 		}
 		// Reset the PER bit
-		CLEAR_BIT(FPEC->FPEC_CR, CR_PER);
+		CLR_BIT(FPEC->FPEC_CR, CR_PER);
 	}
 	else
 	{
@@ -138,7 +138,7 @@ Err_t FPEC_xErasePage_ByPA(u32 Local_u32PageAddress)
 			Local_returnVal = ERR;
 		}
 		// Reset the PER bit
-		CLEAR_BIT(FPEC->FPEC_CR, CR_PER);
+		CLR_BIT(FPEC->FPEC_CR, CR_PER);
 	}
 	else
 	{
@@ -170,7 +170,7 @@ Err_t FPEC_xWritePage_ByPN(u16* Copy_u16Data, u8 Copy_u8Length, u8 Copy_u8PageNu
 			while(GET_BIT(FPEC->FPEC_SR, SR_BSY));
 		}
 		// Reset the PG bit
-		CLEAR_BIT(FPEC->FPEC_CR, CR_PG);
+		CLR_BIT(FPEC->FPEC_CR, CR_PG);
 
 		Local_returnVal = NO_ERR;
 	}
@@ -203,7 +203,7 @@ Err_t FPEC_xWritePage_ByPA(u16* Copy_u16Data, u8 Copy_u8Length, u32 Local_u32Pag
 			while(GET_BIT(FPEC->FPEC_SR, SR_BSY));
 		}
 		// Reset the PG bit
-		CLEAR_BIT(FPEC->FPEC_CR, CR_PG);
+		CLR_BIT(FPEC->FPEC_CR, CR_PG);
 
 		Local_returnVal = NO_ERR;
 	}
