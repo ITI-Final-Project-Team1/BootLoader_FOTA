@@ -30,7 +30,7 @@ void BTL_vSetup(void);
 
 enuBTL_State BTL_enuWaitingState(void);
 enuBTL_State BTL_enuBurningState(void);
-void BTL_enuFinishedState(void);
+void		 BTL_enuFinishedState(void);
 //=======================================================================
 
 

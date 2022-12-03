@@ -1,6 +1,6 @@
 /*
  *=======================================================================
- *						Geniric INCLUDES
+ *						Generic INCLUDES
  *=======================================================================
  *
 */
@@ -12,26 +12,19 @@
 #include "../../ARM_COTS/MCAL-ARM/STK/STK_int.h"
 #include "../../ARM_COTS/MCAL-ARM/NVIC/NVIC_int.h"
 #include "../../ARM_COTS/MCAL-ARM/FPEC/FPEC_interface.h"
-#include "../../ARM_COTS/MCAL-ARM/USART/USART_interface.h"
+#include "../../ARM_COTS/MCAL-ARM/USART/USART_int.h"
 #include "../../ARM_COTS/SERVICES/HEX_PARSER/HEX_PARSER.h"
 #include "../../ARM_COTS/HAL/ESP8266/ESP8266_INTERFACE.h"
+#include "../../ARM_COTS/SERVICES/HEX_PARSER/ESP_PARSER.h"
 
 #include "BOOTLOADER.h"
 //=======================================================================
 
 
 
-//to be replased in ESP8266_PRIVATE.h
-#define WifiName_SSID 	"kamal"
-#define WifiPassword	"0123456789@@_\"AKA\"_@@0123456789"
-#define DomainURL		"http://fota-bootloader.freevar.com/"
-#define UrlGetLINE		"http://fota-bootloader.freevar.com/start_flash.php?config=ok"
-
-
-
 /*
  *=======================================================================
- *						GENERIC VARIABLES
+ *						GENERAL VARIABLES
  *=======================================================================
  *
 */
@@ -41,15 +34,23 @@
 static enuBTL_State currentBTLState;
 
 typedef void (*Function_t)(void);
-Function_t CallApp = 0;
+Function_t CallApp = NULL;
 
-enuBOOL needToWrite = false;
+volatile enuBOOL needToWrite = false;
 enuBOOL appReady = false;
+
 extern volatile u8 DataCome[200]; //for hexFile.string
+//u8 data[60] ={0};
+//u8  u8RecBuffer[100] = {0};
+
+
+ESPResponse_t ExtractedData = {
+        .Data = {0},
+        .DataLength = 0
+};
 hexRecord_t hexDecoded;
+
 //=======================================================================
-
-
 
 
 /*
@@ -62,23 +63,11 @@ static void _BTL_vJumpToApp(void)
 {
 	#define SCB_VTOR   *((volatile u32*)0xE000ED08)
 
-	SCB_VTOR = 0x08002000;//point to App SP ---firt address of flash in app --- first vector table
+	SCB_VTOR = 0x08002000;//point to App SP ---first address of flash in app --- first vector table
 	
 	CallApp = * (Function_t*)(0x08002004);//APP startup code
 	CallApp();
 }
-
-// static u8 _BTL_vCheckAppIsReady(void)
-// {
-	// app_check_address_ptr = (uint32_t *) app_check_address;
-
-    // Read the first location of application section
-    // which contains the address of stack pointer
-    // If it is 0xFFFFFFFF then the application section is empty
-    // if (*app_check_address_ptr == 0xFFFFFFFF) {
-        // return 0;
-    // }
-// }
 
 
 static void _BTL_voidEraseAppArea(void)
@@ -96,21 +85,18 @@ enuBTL_State BTL_enuWaitingState(void)
 {
 	enuBTL_State currentState;
 	u8 isReceived = 0;
-	
-	//set time out for booting
-	MCAL_STK_vSetIntervalSingle((u32 )BTL_TimeOut_us, BTL_enuFinishedState);
-	
+	MCAL_GPIO_vWritePin(GPIOA , GPIO_PIN_3, GPIO_PIN_HIGH);
 	//ASK for record
-	isReceived = ESP8266_u8ReceiveHttpReq((u8 *)UrlGetLINE,(u8 *)"53");
+	isReceived = ESP8266_u8ReceiveHttpReq((u8 *)UrlGetLINE,(u8 *)"66");
 	/* if received correctly */ 
-	if (isReceived==1)
+	if (isReceived=='+')
 	{
-		MCAL_GPIO_vWritePin(GPIOA , GPIO_PIN_3, GPIO_PIN_HIGH);
+		MCAL_GPIO_vWritePin(GPIOA , GPIO_PIN_3, GPIO_PIN_LOW);
 		//STOP time out for booting
 		MCAL_STK_vStopInterval();
 		
-		//Check if needd to write (first line in hex file)
-		if(needToWrite == 1)
+		//Check if needed to write (first line in hex file)
+		if(needToWrite == true)
 		{
 			/* erase application region in flash */
 			_BTL_voidEraseAppArea();
@@ -135,10 +121,13 @@ enuBTL_State BTL_enuWaitingState(void)
 enuBTL_State BTL_enuBurningState(void)
 {
 	enuBTL_State currentState;
+	ESP_vParseData((u8* volatile)DataCome, &ExtractedData);
 	/* Parse received hex line into record */
-	HEXP_Get_RecordData(DataCome/*	takes one hex record*/, &hexDecoded/*return Data*/);
-	MCAL_GPIO_vWritePin(GPIOA , GPIO_PIN_3, GPIO_PIN_HIGH);
+	HEXP_Get_RecordData(ExtractedData.Data/*takes one hex record*/, &hexDecoded/*return Data*/);
+	MCAL_GPIO_vWritePin(GPIOA , GPIO_PIN_3, GPIO_PIN_LOW);
+	
 	if(hexDecoded.record_type == HEXP_EOF ){
+		
 		/* if finished writing hex file	signal that the application is ready */
 		appReady = 1;
 		/* move to finished state */
@@ -146,19 +135,22 @@ enuBTL_State BTL_enuBurningState(void)
 	}
 	else{
 		/* Burn */
-		FPEC_xWritePage_ByPA(hexDecoded.data, hexDecoded.byte_count, hexDecoded.address );
+		FPEC_xWritePage_ByPA(hexDecoded.data, hexDecoded.byte_count, hexDecoded.address);
 
-		//TO DO
+		//TODO
 		// OK And send another Record
 //		MUSART1_voidTransmit("ok");//ACK +IPD
 		//ASK to read first rec
 		//ESP8266_u8ReceiveHttpReq((u8 *)UrlGetLINE,(u8 *)"53");
 		//ESP8266_voidSendData(IPserver,"63","fota-bootloader.freevar.com/start_flash.php?config=ok",data);
+		ESP8266_u8ReceiveHttpReq((u8 *)UrlRETRIVELINE,(u8 *)"68");
 		
 		/* if not finished writing hex file	signal that the application is not ready */
 		appReady = 0;
 		/* move to finished state */
 		currentState = Waiting;
+		//set time out for booting
+		MCAL_STK_vSetIntervalSingle((u32 )BTL_TimeOut_us, BTL_enuFinishedState);
 	}
 	return currentState;
 }
@@ -176,8 +168,11 @@ void BTL_enuFinishedState(void)
 
 
 	/* jump to aplication */
-	appReady = true;
-	_BTL_vJumpToApp();
+
+	if(appReady == true)
+	{
+		_BTL_vJumpToApp();
+	}
 	
 	//return Finished;
 }
@@ -198,22 +193,7 @@ void BTL_vSetup(void)
 	RCC_vInit();
 	RCC_vEnableClock( USART1_APB2 , APB2 );	/* Enable USART 1 */
 	RCC_vEnableClock( IOPA_APB2 , APB2   );	/* Enable GPIOA */
-	
-	/* Configure A9  (Tx1) as Output AFPP @ 2MHz */ 	
-	/* Configure A10 (RX1) as input Floating     */
-	// GPIO_Config_t USART1_PINs[2] = {
-		// {GPIO_PORTA, PIN9 , OUTPUT_2MHZ_AF_PP },
-		// {GPIO_PORTA, PIN10, INPUT_FLOATING }
-	// };
-	// GPIO_vInit(&USART1_PINs[0]);
-	// GPIO_vInit(&USART1_PINs[1]);
-	
-	GPIO_PinConfig_t USART1_PINs[2] = {
-		{GPIO_PIN_9, GPIO_Mode_AF_OUT_PushPull , GPIO_Speed_2M },
-		{GPIO_PIN_10, GPIO_Mode_IN_Floating ,GPIO_Speed_2M }
-	};
-	MCAL_GPIO_vInit(GPIOA,&USART1_PINs[1]);
-	MCAL_GPIO_vInit(GPIOA,&USART1_PINs[1]);
+
 	GPIO_PinConfig_t led = {GPIO_PIN_3, GPIO_Mode_OUT_PushPull , GPIO_Speed_2M };	
 	MCAL_GPIO_vInit(GPIOA,&led);
 	
@@ -221,11 +201,6 @@ void BTL_vSetup(void)
 
 	/* Set USART1 Higer Priority Enable NVIC For USART1 */
 	MCAL_NVIC_vSetPriority ( NVIC_USART1_IRQ , 1 , NVIC_GROUP4_SUB0 ) ;
-	MCAL_NVIC_vEnableInterrupt (NVIC_USART1_IRQ) ;
-
-
-	/* Initialize UART */
-	USART_vInit();
 
 	/* Setting ESP8266 Mode */
 	ESP8266_VidInit();
@@ -236,8 +211,11 @@ void BTL_vSetup(void)
 	ESP8266_VidConnectToSrvTcp( (u8 *)DomainURL , (u8 *)"80" );
 	
 	//ASK to read first rec
-	//ESP8266_u8ReceiveHttpReq((u8 *)UrlGetLINE,(u8 *)"53");
-			
+	ESP8266_u8ReceiveHttpReq((u8 *)UrlRestartLINE,(u8 *)"56");
+
+	//set time out for booting
+	MCAL_STK_vSetIntervalSingle((u32 )BTL_TimeOut_us, BTL_enuFinishedState);
+
 	//set need to write flag to erase App section in flash//Write requist
 	needToWrite = true;
 	currentBTLState = Waiting;
@@ -245,9 +223,9 @@ void BTL_vSetup(void)
 
 
 #define state(_statFUN_) 	BTL_enu##_statFUN_##State()
-			//(Wating)  	BTL_enuWatingState()
-			//				BTL_enuBurningState()
-			//				BTL_enuFinishedState
+			//(Waiting)  	BTL_enuWaitingState()
+	        //(Burning)		BTL_enuBurningState()
+			//(Finished)	BTL_enuFinishedState()
 
 void BTL_vStart(void)
 {

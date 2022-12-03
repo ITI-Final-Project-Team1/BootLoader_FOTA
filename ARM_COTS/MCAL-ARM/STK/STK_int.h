@@ -45,6 +45,8 @@ void MCAL_STK_vSetIntervalPeriodic (u32 A_u32Ticks, void (*fptr) (void));
 void MCAL_STK_vStopInterval		  (void);
 u32  MCAL_STK_u32GetElapsedTime		  (void);
 u32  MCAL_STK_u32GetRemainingTime     (void);
+void MCAL_STK_delay_ms( u32 Copy_u32Time );
+void MCAL_STK_delay_us( u32 Copy_u32Time );
 
 
 //=======================================================================
