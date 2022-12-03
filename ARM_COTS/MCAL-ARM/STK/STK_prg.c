@@ -131,6 +131,14 @@ u32  MCAL_STK_u32GetRemainingTime(void)
 	return STK->VAL;
 }
 
+void MCAL_STK_delay_ms( u32 Copy_u32Time )
+{
+	MCAL_STK_vSetBusyWait(Copy_u32Time*1000);
+}
+void MCAL_STK_delay_us( u32 Copy_u32Time )
+{
+	MCAL_STK_vSetBusyWait(Copy_u32Time);
+}
 //=======================================================================
 
 
